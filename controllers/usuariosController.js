@@ -28,7 +28,6 @@ export const getUsuario = async (req, res)=> {
     }
 }
 //crear un usuario
-// usuariosController.js
 export const createUsuario = async (req, res) => {
     const { nombre_usuario, contrasena, rol } = req.body;
     
