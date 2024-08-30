@@ -1,5 +1,6 @@
-import express from "express"
-import cors from 'cors'
+import express from "express";
+import cors from 'cors';
+import dotenv from 'dotenv';
 
 //importamos la BD
 import db from "./database/db.js";
@@ -18,6 +19,7 @@ import ventasRoutes from "./routes/ventasRoutes.js";
 import detalleVentasRoutes from "./routes/detalleVentasRoutes.js";
 
 
+dotenv.config();
 const app = express()
 app.use(cors())
 app.use(express.json())
