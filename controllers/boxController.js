@@ -16,7 +16,7 @@ export const getAllBox = async(req, res) => {
 //Mostrar un box
 export const getBox = async (req, res)=> {
     try {
-        const box = await boxModel.findAll({
+        const box = await boxModel.findOne({
             where:{ 
                 id:req.params.id
             }
