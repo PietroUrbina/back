@@ -13,20 +13,22 @@ export const getAllUsuarios = async(req, res) => {
     }
 
 }
-//Mostrar un Usuario
-export const getUsuario = async (req, res)=> {
+// Mostrar un Usuario
+export const getUsuario = async (req, res) => {
     try {
-        const usuario = await usuariosModel.findAll({
-            where:{ 
-                id:req.params.id
-            }
+        const usuario = await usuariosModel.findOne({
+            where: { id: req.params.id }
         });
-        res.json(usuario);
-        
+        if (usuario) {
+            res.json(usuario);
+        } else {
+            res.status(404).json({ message: "Usuario no encontrado" });
+        }
     } catch (error) {
-        res.json( {message: error.message})
+        res.status(500).json({ message: error.message });
     }
-}
+};
+
 //crear un usuario
 export const createUsuario = async (req, res) => {
     const { nombre_usuario, contrasena, rol } = req.body;
