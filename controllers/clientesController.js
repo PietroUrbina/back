@@ -16,7 +16,7 @@ export const getAllClientes = async(req, res) => {
 //Mostrar un Cliente
 export const getCliente = async (req, res)=> {
     try {
-        const cliente = await clientesModel.findAll({
+        const cliente = await clientesModel.findOne({
             where:{ 
                 id:req.params.id
             }
