@@ -29,10 +29,10 @@ export const getBox = async (req, res)=> {
 }
 //crear un box
 export const createBox = async (req, res) => {
-    const { nombre_box, capacidad} = req.body;
+    const { nombre_box, capacidad, requisitos} = req.body;
     
     try {
-        await boxModel.create({ nombre_box, capacidad });
+        await boxModel.create({ nombre_box, capacidad, requisitos });
         res.json({
             message: "¡Box creado correctamente!"
         });

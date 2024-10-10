@@ -1,18 +1,26 @@
 //importamos el Modelo
 import usuariosModel from "../models/usuariosModel.js";
+import empleadosModel from "../models/empleadosModel.js";
 
-//**Metodos para el CRUD */
+//**Métodos para el CRUD */
 
-//Mostrar todos los usuarios
-export const getAllUsuarios = async(req, res) => {
-    try{
-    const usuarios = await usuariosModel.findAll()
-        res.json(usuarios)
+// Mostrar todos los usuarios
+export const getAllUsuarios = async (req, res) => {
+    try {
+        const usuarios = await usuariosModel.findAll({
+            include: [
+                {
+                    model: empleadosModel, // Hacemos el JOIN con empleados
+                    attributes: ['nombre'], // Solo traemos el campo "nombre"
+                },
+            ],
+        });
+        res.json(usuarios);
     } catch (error) {
-        res.json( {message: error.message})
+        res.json({ message: error.message });
     }
+};
 
-}
 // Mostrar un Usuario
 export const getUsuario = async (req, res) => {
     try {
@@ -29,9 +37,9 @@ export const getUsuario = async (req, res) => {
     }
 };
 
-//crear un usuario
+// Crear un usuario
 export const createUsuario = async (req, res) => {
-    const { nombre_usuario, contrasena, rol } = req.body;
+    const { nombre_usuario, contrasena, rol, id_empleado } = req.body;  // Recibimos id_empleado desde el frontend
     
     // Verifica que el rol sea uno de los valores permitidos
     if (!['administrador', 'cajero', 'mozo'].includes(rol)) {
@@ -41,38 +49,49 @@ export const createUsuario = async (req, res) => {
     }
 
     try {
-        await usuariosModel.create({ nombre_usuario, contrasena, rol });
+        // Verificamos que el empleado existe usando el campo 'id' en la tabla de empleados
+        const empleado = await empleadosModel.findOne({ where: { id: id_empleado } });
+        if (!empleado) {
+            return res.status(400).json({
+                message: "El empleado proporcionado no es válido."
+            });
+        }
+
+        // Creamos el usuario en la base de datos
+        await usuariosModel.create({ nombre_usuario, contrasena, rol, id_empleado });
         res.json({
             message: "¡Usuario creado correctamente!"
         });
     } catch (error) {
+        console.error("Error al crear usuario:", error);  // Agregar más información del error
         res.status(500).json({ message: error.message });
     }
-}
+};
 
-//actualizar un usuario
-export const updateUsuario = async (req, res) =>{
+// Actualizar un usuario
+export const updateUsuario = async (req, res) => {
     try {
-        await usuariosModel.update(req.body,{
-            where:{id: req.params.id}
-        })
+        await usuariosModel.update(req.body, {
+            where: { id: req.params.id }
+        });
         res.json({
-            "message":"¡usuario actualizado correctamente!"
-        })
+            message: "¡Usuario actualizado correctamente!"
+        });
     } catch (error) {
-        res.json( {message: error.message})
+        res.json({ message: error.message });
     }
-}
-//eliminar un usuario
-export const deleteUsuario = async (req, res) =>{
+};
+
+// Eliminar un usuario
+export const deleteUsuario = async (req, res) => {
     try {
         await usuariosModel.destroy({
-            where:{ id: req.params.id }
-        })
+            where: { id: req.params.id }
+        });
         res.json({
-            "message":"Usuario eliminado correctamente"
-        })
+            message: "Usuario eliminado correctamente"
+        });
     } catch (error) {
-        res.json( {message: error.message})
+        res.json({ message: error.message });
     }
-}
+};

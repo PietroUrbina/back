@@ -29,10 +29,10 @@ export const getInventario = async (req, res)=> {
 }
 //crear un inventario
 export const createInventario = async (req, res) => {
-    const { id_producto, cantidad, fecha_entrada, fecha_salida } = req.body;
+    const { id_producto, tipo_movimiento, stock, unidad_medida, fecha_movimiento } = req.body;
 
     try {
-        await inventariosModel.create({ id_producto, cantidad, fecha_entrada, fecha_salida });
+        await inventariosModel.create({ id_producto, tipo_movimiento, stock, unidad_medida, fecha_movimiento });
         res.json({
             message: "¡Inventario creado correctamente!"
         });

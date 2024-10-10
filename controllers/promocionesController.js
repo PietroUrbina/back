@@ -29,10 +29,10 @@ export const getPromocion= async (req, res)=> {
 }
 //crear una promocion
 export const createPromocion = async (req, res) => {
-    const { nombre_promocion, descripcion, fecha_inicio, fecha_fin, descuento } = req.body;
+    const { nombre_promocion, descripcion, descuento, fecha_inicio, fecha_fin } = req.body;
 
     try {
-        await promocionesModel.create({ nombre_promocion, descripcion, fecha_inicio, fecha_fin, descuento });
+        await promocionesModel.create({ nombre_promocion, descripcion, descuento, fecha_inicio, fecha_fin });
         res.json({
             message: "Promocion creada correctamente!"
         });

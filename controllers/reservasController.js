@@ -29,10 +29,10 @@ export const getReserva = async (req, res)=> {
 }
 //crear una Reserva
 export const createReserva = async (req, res) => {
-    const { id_cliente, fecha_reserva, hora_inicio, hora_fin, estado } = req.body;
+    const { id_cliente, fecha_reserva, num_personas, estado, id_usuario, fecha_creacion } = req.body;
 
     try {
-        await reservasModel.create({ id_cliente, fecha_reserva, hora_inicio, hora_fin, estado });
+        await reservasModel.create({ id_cliente, fecha_reserva, num_personas, estado, id_usuario, fecha_creacion });
         res.json({
             message: "Reserva creada correctamente!"
         });

@@ -29,10 +29,10 @@ export const getVenta= async (req, res)=> {
 }
 //crear una venta
 export const createVenta = async (req, res) => {
-    const { id_cliente, fecha_venta, total, metodo_pago } = req.body;
+    const { id_usuario, id_cliente, total, metodo_pago, comprobante, tipo_comprobante, fecha_emision, estado } = req.body;
 
     try {
-        await ventasModel.create({ id_cliente, fecha_venta, total, metodo_pago  });
+        await ventasModel.create({ id_usuario, id_cliente, total, metodo_pago, comprobante, tipo_comprobante, fecha_emision, estado  });
         res.json({
             message: "Venta creada correctamente!"
         });

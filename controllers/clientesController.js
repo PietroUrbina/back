@@ -29,10 +29,10 @@ export const getCliente = async (req, res)=> {
 }
 //crear un Cliente
 export const createCliente = async (req, res) => {
-    const { nombre, apellido, dni, email, telefono, direccion, fecha_nacimiento } = req.body;
+    const { dni, nombre, apellido, direccion, email, telefono, fecha_nacimiento, sexo } = req.body;
 
     try {
-        await clientesModel.create({ nombre, apellido, dni, email, telefono, direccion, fecha_nacimiento });
+        await clientesModel.create({ dni, nombre, apellido, direccion, email, telefono, fecha_nacimiento, sexo });
         res.json({
             message: "¡Cliente creado correctamente!"
         });

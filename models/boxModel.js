@@ -1,10 +1,10 @@
 import db from "../database/db.js";
 import { DataTypes } from "sequelize";
 
-const boxModel = db.define('box', {
+const boxModel = db.define('boxs', {
     nombre_box: { type: DataTypes.STRING },
-    capacidad: { type: DataTypes.INTEGER }
-    
+    capacidad: { type: DataTypes.INTEGER },
+    requisitos: { type: DataTypes.TEXT}
 }, {
     timestamps: false  // Opcional: deshabilitar createdAt y updatedAt
 });
