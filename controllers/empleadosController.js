@@ -6,8 +6,8 @@ import empleadosModel from "../models/empleadosModel.js"
 //Mostrar todos los empleados
 export const getAllEmpleados = async(req, res) => {
     try{
-    const empleado = await empleadosModel.findAll()
-        res.json(empleado)
+    const empleados = await empleadosModel.findAll()
+        res.json(empleados)
     } catch (error) {
         res.json( {message: error.message})
     }
@@ -29,10 +29,10 @@ export const getEmpleado = async (req, res)=> {
 }
 //crear un empleado
 export const createEmpleado = async (req, res) => {
-    const { nombre, direccion, telefono, email, fecha_contratacion } = req.body;
+    const { nombre_empleado, direccion, telefono, email, fecha_contratacion } = req.body;
     
     try {
-        await empleadosModel.create({ nombre, direccion, telefono, email, fecha_contratacion });
+        await empleadosModel.create({ nombre_empleado, direccion, telefono, email, fecha_contratacion });
         res.json({
             message: "¡Empleado creado correctamente!"
         });

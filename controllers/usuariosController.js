@@ -11,7 +11,7 @@ export const getAllUsuarios = async (req, res) => {
             include: [
                 {
                     model: empleadosModel, // Hacemos el JOIN con empleados
-                    attributes: ['nombre'], // Solo traemos el campo "nombre"
+                    attributes: ['nombre_empleado'], // Solo traemos el campo del nombre
                 },
             ],
         });

@@ -2,7 +2,7 @@ import db from "../database/db.js";
 import { DataTypes } from "sequelize";
 import empleadosModel from "./empleadosModel.js"
 
-const productosModel = db.define('productos', {
+const usuariosModel = db.define('usuarios', {
     nombre_usuario: { type: DataTypes.STRING },
     contrasena: { type: DataTypes.STRING },
     rol: { 
@@ -14,9 +14,9 @@ const productosModel = db.define('productos', {
     timestamps: false  // Opcional: deshabilitar createdAt y updatedAt
 });
 
-// Establecer relación con categorías
+// Establecer relación con empleados
 usuariosModel.belongsTo(empleadosModel, { foreignKey: 'id_empleado' });
 
 
-export default productosModel;
+export default usuariosModel;
 
