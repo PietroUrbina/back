@@ -1,38 +1,56 @@
 //importamos el Modelo
 import inventariosModel from "../models/inventariosModel.js";
+import productosModel from "../models/productosModel.js";
+import categoriasModel from "../models/categoriasModel.js";
 
 //**Metodos para el CRUD */
 
-//Mostrar todos los Inventarios
-export const getAllInventarios = async(req, res) => {
-    try{
-    const inventarios = await inventariosModel.findAll()
-        res.json(inventarios)
-    } catch (error) {
-        res.json( {message: error.message})
-    }
-
-}
-//Mostrar un Inventario
-export const getInventario = async (req, res)=> {
+// Mostrar todos los Inventarios
+export const getAllInventarios = async (req, res) => {
     try {
-        const inventario = await inventariosModel.findAll({
-            where:{ 
-                id:req.params.id
-            }
+        const inventarios = await inventariosModel.findAll({
+            include: [{
+                model: productosModel, // Relacionamos con el modelo de productos
+                attributes: ['nombre'] // Traemos solo el nombre del producto
+            }]
         });
-        res.json(inventario);
-        
+        res.json(inventarios);
     } catch (error) {
-        res.json( {message: error.message})
+        res.json({ message: error.message });
     }
-}
+};
+
+// Mostrar un Inventario por ID (con la relación de productos y categorías)
+export const getInventario = async (req, res) => {
+    try {
+        const inventario = await inventariosModel.findOne({
+            where: { id: req.params.id },
+            include: [{
+                model: productosModel,
+                attributes: ['nombre', 'costo', 'fecha_vencimiento'],  // Traemos los detalles del producto
+                include: [{
+                    model: categoriasModel,  // Aquí traemos la categoría
+                    attributes: ['nombre_categoria']  // Solo traemos el nombre de la categoría
+                }]
+            }]
+        });
+
+        if (!inventario) {
+            return res.status(404).json({ message: 'Inventario no encontrado' });
+        }
+
+        res.json(inventario);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 //crear un inventario
 export const createInventario = async (req, res) => {
-    const { id_producto, tipo_movimiento, stock, unidad_medida, fecha_movimiento } = req.body;
+    const { id_producto, stock, precio, unidad_medida,tipo_movimiento, fecha_movimiento } = req.body;
 
     try {
-        await inventariosModel.create({ id_producto, tipo_movimiento, stock, unidad_medida, fecha_movimiento });
+        await inventariosModel.create({ id_producto, stock, precio, unidad_medida, tipo_movimiento, fecha_movimiento });
         res.json({
             message: "¡Inventario creado correctamente!"
         });

@@ -1,6 +1,42 @@
 //importamos el Modelo
 import usuariosModel from "../models/usuariosModel.js";
 import empleadosModel from "../models/empleadosModel.js";
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+// Login de usuario
+export const loginUsuario = async (req, res) => {
+    const { nombre_usuario, contrasena } = req.body;
+
+    try {
+        // Buscar el usuario por nombre
+        const usuario = await usuariosModel.findOne({
+            where: { nombre_usuario }   
+        });
+
+        if (!usuario) {
+            return res.status(404).json({ message: "Usuario no encontrado" });
+        }
+
+        // Comparar la contraseña en texto plano con la encriptada
+        const isPasswordValid = await bcrypt.compare(contrasena, usuario.contrasena);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: "Contraseña incorrecta" });
+        }
+
+        // Crear token JWT
+        const token = jwt.sign(
+            { id: usuario.id, nombre_usuario: usuario.nombre_usuario, rol: usuario.rol },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }  // Token expira en 1 hora
+        );
+
+        res.json({ message: "Login exitoso", token });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 
 //**Métodos para el CRUD */
 
@@ -8,10 +44,11 @@ import empleadosModel from "../models/empleadosModel.js";
 export const getAllUsuarios = async (req, res) => {
     try {
         const usuarios = await usuariosModel.findAll({
+            attributes: { exclude: ['contrasena'] },  // No devolver la contraseña
             include: [
                 {
-                    model: empleadosModel, // Hacemos el JOIN con empleados
-                    attributes: ['nombre_empleado'], // Solo traemos el campo del nombre
+                    model: empleadosModel, 
+                    attributes: ['nombre_empleado'],  // Incluir solo el nombre del empleado
                 },
             ],
         });
@@ -39,10 +76,10 @@ export const getUsuario = async (req, res) => {
 
 // Crear un usuario
 export const createUsuario = async (req, res) => {
-    const { nombre_usuario, contrasena, rol, id_empleado } = req.body;  // Recibimos id_empleado desde el frontend
-    
+    const { nombre_usuario, contrasena, rol, id_empleado } = req.body;
+
     // Verifica que el rol sea uno de los valores permitidos
-    if (!['administrador', 'cajero', 'mozo'].includes(rol)) {
+    if (!['Administrador', 'Cajero', 'Mozo'].includes(rol)) {
         return res.status(400).json({
             message: "El rol proporcionado no es válido."
         });
@@ -57,8 +94,11 @@ export const createUsuario = async (req, res) => {
             });
         }
 
-        // Creamos el usuario en la base de datos
-        await usuariosModel.create({ nombre_usuario, contrasena, rol, id_empleado });
+        // Encriptar la contraseña antes de guardar
+        const hashedPassword = await bcrypt.hash(contrasena, 10);  // 10 es el salt rounds
+
+        // Creamos el usuario en la base de datos con la contraseña encriptada
+        await usuariosModel.create({ nombre_usuario, contrasena: hashedPassword, rol, id_empleado });
         res.json({
             message: "¡Usuario creado correctamente!"
         });
@@ -67,7 +107,6 @@ export const createUsuario = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
 // Actualizar un usuario
 export const updateUsuario = async (req, res) => {
     try {

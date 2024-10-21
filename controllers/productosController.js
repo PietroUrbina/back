@@ -33,13 +33,13 @@ export const getProducto = async (req, res) => {
 
 // Crear un Producto
 export const createProducto = async (req, res) => {
-    const { nombre, descripcion, id_categoria, precio, fecha_vencimiento, imagen  } = req.body;
+    const { nombre, descripcion, id_categoria, costo, fecha_vencimiento, imagen  } = req.body;
     try {
         await productosModel.create({
             nombre,
             descripcion,
             id_categoria,
-            precio,
+            costo,
             // Si no se proporciona una fecha, pon null (campo opcional)
             fecha_vencimiento: fecha_vencimiento || null,
             imagen
