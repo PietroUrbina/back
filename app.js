@@ -54,6 +54,7 @@ app.use('/empleados', empleadosRoutes);
 try {
     await db.authenticate();
     console.log('Conexión a la base de datos exitosa');
+    
 } catch (error) {
     console.log(`Error de conexión: ${error}`);
 }

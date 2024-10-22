@@ -77,36 +77,92 @@ export const getUsuario = async (req, res) => {
 // Crear un usuario
 export const createUsuario = async (req, res) => {
     const { nombre_usuario, contrasena, rol, id_empleado } = req.body;
-
-    // Verifica que el rol sea uno de los valores permitidos
+  
+    // Verificar que los datos lleguen correctamente
+    console.log('Datos recibidos en el servidor:', req.body);
+  
     if (!['Administrador', 'Cajero', 'Mozo'].includes(rol)) {
-        return res.status(400).json({
-            message: "El rol proporcionado no es válido."
-        });
+      return res.status(400).json({
+        message: "El rol proporcionado no es válido."
+      });
     }
+  
+    try {
+      // Verificar si el nombre de usuario ya existe
+      const usuarioExistente = await usuariosModel.findOne({ where: { nombre_usuario } });
+      if (usuarioExistente) {
+        return res.status(400).json({ message: 'El nombre de usuario ya está en uso.' });
+      }
+  
+      // Verificar que el empleado existe
+      const empleado = await empleadosModel.findOne({ where: { id: id_empleado } });
+      if (!empleado) {
+        return res.status(400).json({
+          message: "El empleado proporcionado no es válido."
+        });
+      }
+  
+      // Encriptar la contraseña
+      const hashedPassword = await bcrypt.hash(contrasena, 10);
+  
+      // Crear el usuario
+      const nuevoUsuario = await usuariosModel.create({
+        nombre_usuario,
+        contrasena: hashedPassword,
+        rol,
+        id_empleado
+      });
+  
+      // Respuesta exitosa
+      res.json({ message: "¡Usuario creado correctamente!", usuario: nuevoUsuario });
+    } catch (error) {
+      console.error('Error al crear usuario:', error);
+      res.status(500).json({ message: error.message });
+    }
+  };  
+
+// Verificar si un nombre de usuario ya existe
+export const checkUsuarioExistente = async (req, res) => {
+    const { nombre_usuario } = req.body; // Tomar el nombre de usuario desde el cuerpo de la solicitud
 
     try {
-        // Verificamos que el empleado existe usando el campo 'id' en la tabla de empleados
-        const empleado = await empleadosModel.findOne({ where: { id: id_empleado } });
-        if (!empleado) {
-            return res.status(400).json({
-                message: "El empleado proporcionado no es válido."
-            });
+        const usuarioExistente = await usuariosModel.findOne({
+            where: { nombre_usuario }
+        });
+
+        if (usuarioExistente) {
+            // Si existe, devuelve un error con mensaje
+            return res.status(400).json({ message: 'El nombre de usuario ya está en uso.' });
         }
 
-        // Encriptar la contraseña antes de guardar
-        const hashedPassword = await bcrypt.hash(contrasena, 10);  // 10 es el salt rounds
-
-        // Creamos el usuario en la base de datos con la contraseña encriptada
-        await usuariosModel.create({ nombre_usuario, contrasena: hashedPassword, rol, id_empleado });
-        res.json({
-            message: "¡Usuario creado correctamente!"
-        });
+        // Si no existe, devolver un mensaje de que está disponible
+        res.status(200).json({ message: 'El nombre de usuario está disponible.' });
     } catch (error) {
-        console.error("Error al crear usuario:", error);  // Agregar más información del error
+        console.error('Error al verificar nombre de usuario:', error);
         res.status(500).json({ message: error.message });
     }
 };
+
+// Lógica para cambiar la contraseña
+export const changePassword = async (req, res) => {
+    const { id } = req.params;
+    const { contrasena } = req.body;
+
+    if (!contrasena || contrasena.length < 10) {
+        return res.status(400).json({ message: 'La contraseña debe tener al menos 10 caracteres' });
+    }
+
+    try {
+        // Hashear la nueva contraseña
+        const hashedPassword = await bcrypt.hash(contrasena, 10);
+        await usuariosModel.update({ contrasena: hashedPassword }, { where: { id } });
+
+        res.json({ message: 'Contraseña actualizada con éxito' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar la contraseña' });
+    }
+};
+
 // Actualizar un usuario
 export const updateUsuario = async (req, res) => {
     try {
