@@ -1,5 +1,6 @@
 //importamos el Modelo
 import empleadosModel from "../models/empleadosModel.js"
+import usuariosModel from "../models/usuariosModel.js"
 
 //**Metodos para el CRUD */
 
@@ -29,10 +30,10 @@ export const getEmpleado = async (req, res)=> {
 }
 //crear un empleado
 export const createEmpleado = async (req, res) => {
-    const { nombre_empleado, direccion, telefono, email, fecha_contratacion } = req.body;
+    const { dni, nombre_empleado, apellido_empleado, direccion, telefono, email, fecha_contratacion } = req.body;
     
     try {
-        await empleadosModel.create({ nombre_empleado, direccion, telefono, email, fecha_contratacion });
+        await empleadosModel.create({ dni, nombre_empleado, apellido_empleado, direccion, telefono, email, fecha_contratacion });
         res.json({
             message: "¡Empleado creado correctamente!"
         });
@@ -54,16 +55,30 @@ export const updateEmpleado = async (req, res) =>{
         res.json( {message: error.message})
     }
 }
-//eliminar un Empleado
-export const deleteEmpleado = async (req, res) =>{
+
+// Eliminar un Empleado y su usuario asociado
+export const deleteEmpleado = async (req, res) => {
     try {
-        await empleadosModel.destroy({
-            where:{ id: req.params.id }
-        })
+        // Buscar el empleado por su ID
+        const empleado = await empleadosModel.findByPk(req.params.id);
+
+        if (!empleado) {
+            return res.status(404).json({ message: 'Empleado no encontrado' });
+        }
+
+        // Buscar y eliminar el usuario asociado al empleado, si existe
+        const usuario = await usuariosModel.findOne({ where: { id_empleado: empleado.id } });
+        if (usuario) {
+            await usuario.destroy();
+        }
+
+        // Eliminar el empleado
+        await empleado.destroy();
+
         res.json({
-            "message":"Empleado eliminado correctamente"
-        })
+            message: 'Empleado y su usuario asociados han sido eliminados correctamente'
+        });
     } catch (error) {
-        res.json( {message: error.message})
+        res.status(500).json({ message: error.message });
     }
-}
+};

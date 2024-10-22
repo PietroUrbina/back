@@ -2,7 +2,9 @@ import db from "../database/db.js";
 import { DataTypes } from "sequelize";
 
 const empleadosModel = db.define('empleados', {
+    dni: { type: DataTypes.STRING},
     nombre_empleado: { type: DataTypes.STRING },
+    apellido_empleado: { type: DataTypes.STRING },
     direccion: { type: DataTypes.STRING },
     telefono: { type: DataTypes.STRING},
     email: { type: DataTypes.STRING},

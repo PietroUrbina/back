@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const obtenerDatosCliente = async (req, res) => {
+const obtenerDatosPersona = async (req, res) => {
     const { dni } = req.body;
 
     try {
@@ -35,4 +35,4 @@ const obtenerDatosCliente = async (req, res) => {
     }
 };
 
-export { obtenerDatosCliente };
+export { obtenerDatosPersona };
