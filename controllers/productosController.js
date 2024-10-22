@@ -1,6 +1,7 @@
 // importamos el Modelo
 import productosModel from "../models/productosModel.js";
 import categoriasModel from "../models/categoriasModel.js";
+import inventariosModel from "../models/inventariosModel.js";
 
 //** Metodos para el CRUD **/
 
@@ -13,6 +14,20 @@ export const getAllProductos = async (req, res) => {
                 attributes: ['nombre_categoria'] // Obtener solo el nombre de la categoría
             }]
         });
+
+        // Para cada producto, verificar si está en inventario y actualizar su estado
+        for (let producto of productos) {
+            const inventario = await inventariosModel.findOne({
+                where: { id_producto: producto.id }
+            });
+
+            // Si el producto está en inventario, se marca como "activo", de lo contrario "inactivo"
+            if (inventario) {
+                await producto.update({ estado: 'activo' });
+            } else {
+                await producto.update({ estado: 'inactivo' });
+            }
+        }
         res.json(productos);
     } catch (error) {
         res.json({ message: error.message });
@@ -40,7 +55,6 @@ export const createProducto = async (req, res) => {
             descripcion,
             id_categoria,
             costo,
-            // Si no se proporciona una fecha, pon null (campo opcional)
             fecha_vencimiento: fecha_vencimiento || null,
             imagen
         });

@@ -9,4 +9,5 @@ productosRoutes.post('/',createProducto);
 productosRoutes.put('/:id',updateProducto);
 productosRoutes.delete('/:id',deleteProducto);
 
+
 export default productosRoutes;

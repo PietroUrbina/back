@@ -51,6 +51,7 @@ export const createInventario = async (req, res) => {
 
     try {
         await inventariosModel.create({ id_producto, stock, precio, unidad_medida, tipo_movimiento, fecha_movimiento });
+
         res.json({
             message: "¡Inventario creado correctamente!"
         });

@@ -8,7 +8,8 @@ const productosModel = db.define('productos', {
     id_categoria: { type: DataTypes.INTEGER },
     costo: { type: DataTypes.DECIMAL },
     fecha_vencimiento: { type: DataTypes.DATE },
-    imagen: { type: DataTypes.TEXT }
+    imagen: { type: DataTypes.TEXT },
+    estado: { type: DataTypes.STRING, defaultValue: 'inactivo' }
 }, {
     timestamps: false  // Opcional: deshabilitar createdAt y updatedAt
 });
