@@ -20,11 +20,11 @@ export const getAllInventarios = async (req, res) => {
     }
 };
 
-// Mostrar un Inventario por ID (con la relación de productos y categorías)
-export const getInventario = async (req, res) => {
+// Mostrar un Inventario por id_producto (con la relación de productos y categorías)
+export const getInventarioByProductoId = async (req, res) => {
     try {
         const inventario = await inventariosModel.findOne({
-            where: { id: req.params.id },
+            where: { id_producto: req.params.id_producto },
             include: [{
                 model: productosModel,
                 attributes: ['nombre', 'costo', 'fecha_vencimiento'],  // Traemos los detalles del producto
@@ -36,7 +36,7 @@ export const getInventario = async (req, res) => {
         });
 
         if (!inventario) {
-            return res.status(404).json({ message: 'Inventario no encontrado' });
+            return res.status(404).json({ message: 'Inventario no encontrado para este producto' });
         }
 
         res.json(inventario);
@@ -45,9 +45,9 @@ export const getInventario = async (req, res) => {
     }
 };
 
-//crear un inventario
+// Crear un inventario
 export const createInventario = async (req, res) => {
-    const { id_producto, stock, precio, unidad_medida,tipo_movimiento, fecha_movimiento } = req.body;
+    const { id_producto, stock, precio, unidad_medida, tipo_movimiento, fecha_movimiento } = req.body;
 
     try {
         await inventariosModel.create({ id_producto, stock, precio, unidad_medida, tipo_movimiento, fecha_movimiento });
@@ -60,29 +60,30 @@ export const createInventario = async (req, res) => {
     }
 }
 
-//actualizar un Inventario
-export const updateInventario = async (req, res) =>{
+// Actualizar un Inventario
+export const updateInventario = async (req, res) => {
     try {
-        await inventariosModel.update(req.body,{
-            where:{id: req.params.id}
-        })
+        await inventariosModel.update(req.body, {
+            where: { id: req.params.id }
+        });
         res.json({
-            "message":"Inventario actualizado correctamente!"
-        })
+            message: "Inventario actualizado correctamente!"
+        });
     } catch (error) {
-        res.json( {message: error.message})
+        res.json({ message: error.message });
     }
 }
-//eliminar un Inventario
-export const deleteInventario = async (req, res) =>{
+
+// Eliminar un Inventario
+export const deleteInventario = async (req, res) => {
     try {
         await inventariosModel.destroy({
-            where:{ id: req.params.id }
-        })
+            where: { id: req.params.id }
+        });
         res.json({
-            "message":"Inventario eliminado correctamente"
-        })
+            message: "Inventario eliminado correctamente"
+        });
     } catch (error) {
-        res.json( {message: error.message})
+        res.json({ message: error.message });
     }
 }

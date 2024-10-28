@@ -3,10 +3,10 @@ import { createDetalleVenta, deleteDetalleVenta, getAllDetallesVentas, getDetall
 
 const detalleVentasRoutes = express.Router();
 
-detalleVentasRoutes.get('/',getAllDetallesVentas);
-detalleVentasRoutes.get('/:id',getDetalleVenta);
-detalleVentasRoutes.post('/',createDetalleVenta);
-detalleVentasRoutes.put('/:id',updateDetalleVenta);
-detalleVentasRoutes.delete('/:id',deleteDetalleVenta);
+detalleVentasRoutes.get('/', getAllDetallesVentas);
+detalleVentasRoutes.get('/:id', getDetalleVenta);
+detalleVentasRoutes.post('/', createDetalleVenta);
+detalleVentasRoutes.put('/:id', updateDetalleVenta);
+detalleVentasRoutes.delete('/:id', deleteDetalleVenta);
 
 export default detalleVentasRoutes;
