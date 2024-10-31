@@ -1,3 +1,4 @@
+import { Op } from "sequelize"; // Importa los operadores de Sequelize
 //importamos el Modelo
 import clientesModel from "../models/clientesModel.js";
 
@@ -27,6 +28,27 @@ export const getCliente = async (req, res)=> {
         res.json( {message: error.message})
     }
 }
+
+// Método para buscar clientes por DNI, nombre o apellido
+export const searchClientes = async (req, res) => {
+    const term = req.params.term;
+
+    try {
+        const clientes = await clientesModel.findAll({
+            where: {
+                [Op.or]: [
+                    { dni: { [Op.like]: `%${term}%` } },
+                    { nombre: { [Op.like]: `%${term}%` } },
+                    { apellido: { [Op.like]: `%${term}%` } }
+                ]
+            }
+        });
+        res.json(clientes);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 //crear un Cliente
 export const createCliente = async (req, res) => {
     const { dni, nombre, apellido, direccion, email, telefono, fecha_nacimiento, sexo } = req.body;

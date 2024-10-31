@@ -22,4 +22,6 @@ const inventariosModel = db.define('inventarios', {
 // Establecer relación con Productos
 inventariosModel.belongsTo(productosModel, { foreignKey: 'id_producto' });
 
+console.log("Modelo de inventarios cargado:", inventariosModel === db.models.inventarios);
+
 export default inventariosModel;

@@ -11,8 +11,9 @@ const ventasModel = db.define('ventas', {
         type: DataTypes.ENUM('Efectivo', 'Tarjeta', 'Yape', 'Plin'),
         allowNull: false
     },
-    imagen_evidencia: { type: DataTypes.BLOB, allowNull: true }, // Evidencia de pago para medios digitales
-    numero_operacion: { type: DataTypes.STRING, allowNull: true }, // Número de operación para medios digitales
+    imagen_evidencia: { type: DataTypes.BLOB, allowNull: true },
+    numero_operacion: { type: DataTypes.STRING, allowNull: true },
+    total: { type: DataTypes.DECIMAL(10, 2), allowNull: true }, // Campo opcional
     fecha_emision: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
     estado: { 
         type: DataTypes.ENUM('Emitido', 'Cancelado'),
@@ -27,7 +28,6 @@ const ventasModel = db.define('ventas', {
     timestamps: false
 });
 
-// Establecer relaciones
 ventasModel.belongsTo(usuariosModel, { foreignKey: 'id_usuario' });
 ventasModel.belongsTo(clientesModel, { foreignKey: 'id_cliente' });
 

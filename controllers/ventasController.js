@@ -1,11 +1,10 @@
-import db from "../database/db.js"; // Importar la base de datos para manejar transacciones
+import db from "../database/db.js";
 import ventasModel from "../models/ventasModel.js";
 import detalleVentasModel from "../models/detalleVentasModel.js";
 import inventariosModel from "../models/inventariosModel.js";
 import usuariosModel from "../models/usuariosModel.js";
 import clientesModel from "../models/clientesModel.js";
 
-// Función de utilidad para calcular el total de la venta
 const calcularTotalVenta = (productos) => {
     return productos.reduce((total, producto) => {
         return total + producto.cantidad * producto.precio_unitario;
@@ -14,16 +13,27 @@ const calcularTotalVenta = (productos) => {
 
 // Crear una venta
 export const createVenta = async (req, res) => {
-    const { id_usuario, id_cliente, metodo_pago, productos, total_pagado, numero_operacion, imagen_evidencia, tipo_comprobante } = req.body;
+    const {
+        id_usuario,
+        id_cliente = null,
+        metodo_pago,
+        productos,
+        total_pagado = null,
+        numero_operacion = null,
+        imagen_evidencia = null,
+        tipo_comprobante = null,
+        estado = 'Emitido'  // Estado predeterminado como 'Emitido'
+    } = req.body;
 
     if (!Array.isArray(productos) || productos.length === 0) {
         return res.status(400).json({ message: "No hay productos en la venta" });
     }
 
-    const transaction = await db.transaction(); // Iniciar una transacción
+    const transaction = await db.transaction();
 
     try {
-        // Calcular el total de la venta
+        console.log("Datos recibidos en el servidor:", req.body);  // Depuración inicial
+
         const total = calcularTotalVenta(productos);
 
         // Crear la venta en la tabla `ventas`
@@ -32,27 +42,24 @@ export const createVenta = async (req, res) => {
             id_cliente,
             total,
             metodo_pago,
-            numero_operacion,
-            imagen_evidencia: imagen_evidencia || null, // Asignar evidencia si existe
+            total_pagado: metodo_pago === "efectivo" ? total_pagado : null,
+            numero_operacion: metodo_pago !== "efectivo" ? numero_operacion : null,
+            imagen_evidencia: metodo_pago !== "efectivo" ? imagen_evidencia : null,
             fecha_emision: new Date(),
-            estado: 'Emitido',
-            tipo_comprobante
+            estado,  // Usar el estado que se recibe o el predeterminado 'Emitido'
+            tipo_comprobante: tipo_comprobante || 'Boleta'  // Asegurar valor predeterminado si es null
         }, { transaction });
 
-        // Registrar cada producto en `detalleventas` y actualizar inventario
         for (const producto of productos) {
             const { id_producto, cantidad, precio_unitario } = producto;
 
-            // Registrar el detalle de la venta
             await detalleVentasModel.create({
-                id_venta: venta.id,  // ID de la venta creada
+                id_venta: venta.id,
                 id_producto,
                 cantidad,
-                precio_unitario,
-                subtotal: cantidad * precio_unitario // Calcular el subtotal
+                subtotal: cantidad * precio_unitario
             }, { transaction });
 
-            // Actualizar el stock en `inventarios`
             const inventario = await inventariosModel.findOne({ where: { id_producto }, transaction });
             if (inventario) {
                 if (inventario.stock < cantidad) {
@@ -64,10 +71,8 @@ export const createVenta = async (req, res) => {
             }
         }
 
-        // Calcular el cambio devuelto al cliente
-        const cambio = total_pagado - total;
+        const cambio = metodo_pago === "efectivo" && total_pagado ? total_pagado - total : 0;
 
-        // Confirmar la transacción
         await transaction.commit();
 
         res.json({
@@ -77,9 +82,12 @@ export const createVenta = async (req, res) => {
             cambio: cambio >= 0 ? cambio : 0
         });
     } catch (error) {
-        // Revertir la transacción en caso de error
         await transaction.rollback();
-        res.status(500).json({ message: error.message });
+        console.error("Error al crear la venta:", error);  // Registro detallado del error en el servidor
+        res.status(500).json({
+            message: "Error al registrar la venta. Verifica los datos y vuelve a intentar.",
+            error: error.message
+        });
     }
 };
 
@@ -94,11 +102,20 @@ export const getAllVentas = async (req, res) => {
                 },
                 {
                     model: clientesModel,
-                    attributes: ['dni', 'nombre', 'apellido']
+                    attributes: ['dni', 'nombre', 'apellido'],
+                    required: false
                 }
             ]
         });
-        res.json(ventas);
+
+        const ventasConCliente = ventas.map(venta => {
+            return {
+                ...venta.toJSON(),
+                cliente: venta.cliente ? `${venta.cliente.nombre} ${venta.cliente.apellido}` : "Público General"
+            };
+        });
+
+        res.json(ventasConCliente);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -109,7 +126,7 @@ export const getVenta = async (req, res) => {
     const { id_venta } = req.params;
     try {
         const venta = await ventasModel.findOne({
-            where: { id_venta },
+            where: { id: id_venta },
             include: [
                 {
                     model: usuariosModel,
@@ -121,6 +138,9 @@ export const getVenta = async (req, res) => {
                 }
             ]
         });
+        if (!venta) {
+            return res.status(404).json({ message: "Venta no encontrada" });
+        }
         res.json(venta);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -129,19 +149,16 @@ export const getVenta = async (req, res) => {
 
 // Función para actualizar una venta
 export const updateVenta = async (req, res) => {
-    const { id_venta } = req.params; // Identificador de la venta
+    const { id_venta } = req.params;
     const { id_cliente, metodo_pago, numero_operacion, imagen_evidencia, estado, tipo_comprobante } = req.body;
 
     try {
-        // Buscar la venta por su ID
         const venta = await ventasModel.findByPk(id_venta);
         
-        // Verificar si la venta existe
         if (!venta) {
             return res.status(404).json({ message: "Venta no encontrada" });
         }
 
-        // Actualizar los campos permitidos
         await venta.update({
             id_cliente,
             metodo_pago,
@@ -157,13 +174,12 @@ export const updateVenta = async (req, res) => {
     }
 };
 
-
 // Eliminar una venta
 export const deleteVenta = async (req, res) => {
     const { id_venta } = req.params;
     try {
         await ventasModel.destroy({
-            where: { id_venta }
+            where: { id: id_venta }
         });
         res.json({
             message: "Venta eliminada correctamente"

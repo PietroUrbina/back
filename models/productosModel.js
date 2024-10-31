@@ -1,6 +1,6 @@
 import db from "../database/db.js";
 import { DataTypes } from "sequelize";
-import categoriasModel from "./categoriasModel.js";  // Importar el modelo de categorías
+import categoriasModel from "./categoriasModel.js";
 
 const productosModel = db.define('productos', {
     nombre: { type: DataTypes.STRING },

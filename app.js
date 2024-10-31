@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 
 //importamos la BD
 import db from "./database/db.js";
+import './models/relations.js';
 
 //importamos nuestros enrutadores
 import UsuariosRoutes from "./routes/usuariosRoutes.js";
