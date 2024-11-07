@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 31-10-2024 a las 14:36:44
+-- Tiempo de generación: 07-11-2024 a las 13:53:30
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -91,7 +91,35 @@ INSERT INTO `clientes` (`id`, `dni`, `nombre`, `apellido`, `direccion`, `email`,
 (6, '45161620', 'LUIS ELMER', 'VIERA FLORES', 'Jr.Miraflores Mz:A Lt:64', 'LuisViera@gmail.com', '961077401', '1985-06-02', 'masculino'),
 (7, '60855620', 'DURGA MARIA', 'SULLCA ALATA', 'Av.Los Mangos 369', 'Sulcamaria@gmail.com', '960499563', '2000-10-25', 'femenino'),
 (8, '40459562', 'JANETH', 'HUAMANTALLA USCAMAYTA', 'Jr. Rosales 569', 'JanethH@gmail.com', '961555678', '1989-11-20', 'femenino'),
-(9, '60885621', 'PIETRO MARSEL', 'URBINA PALA', 'Av.Manantay Mz:C Lt_09', 'urbinapala2005@gmail.com', '960495403', '2005-04-20', 'masculino');
+(9, '60885621', 'PIETRO MARSEL', 'URBINA PALA', 'Av.Manantay Mz:C Lt_09', 'urbinapala2005@gmail.com', '960495403', '2005-04-20', 'masculino'),
+(10, '45162004', 'SIDALIA MALU', 'PALA GRANDEZ', 'Av.Manantay Mz:C Lt:09', 'sidaliamalupala@gmail.com', '921966171', '1989-03-16', 'femenino');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `detalleboxs`
+--
+
+CREATE TABLE `detalleboxs` (
+  `id` int(11) NOT NULL,
+  `id_box` int(11) DEFAULT NULL,
+  `id_producto` int(11) DEFAULT NULL,
+  `cantidad_minima` int(11) DEFAULT NULL,
+  `observaciones` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `detallereservas`
+--
+
+CREATE TABLE `detallereservas` (
+  `id` int(11) NOT NULL,
+  `id_reserva` int(11) DEFAULT NULL,
+  `id_box` int(11) DEFAULT NULL,
+  `disponibilidad` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -139,13 +167,11 @@ CREATE TABLE `detalleventas` (
 --
 
 INSERT INTO `detalleventas` (`id`, `id_venta`, `id_producto`, `cantidad`, `subtotal`) VALUES
-(6, 12, 12, 10, 0.00),
-(7, 13, 11, 12, 0.00),
-(8, 14, 13, 1, 0.00),
-(9, 15, 12, 10, 0.00),
-(10, 16, 15, 4, 0.00),
-(11, 17, 14, 1, 0.00),
-(12, 18, 15, 6, 0.00);
+(2, 30, 15, 1, 4.00),
+(3, 31, 13, 1, 150.00),
+(4, 32, 11, 6, 60.00),
+(5, 33, 14, 2, 3.00),
+(6, 33, 15, 2, 8.00);
 
 -- --------------------------------------------------------
 
@@ -194,11 +220,11 @@ CREATE TABLE `inventarios` (
 --
 
 INSERT INTO `inventarios` (`id`, `id_producto`, `stock`, `precio`, `unidad_medida`, `tipo_movimiento`, `fecha_movimiento`) VALUES
-(39, 12, 80, 5.00, 'UND', 'Entrada', '2024-10-25'),
-(40, 13, 19, 150.00, 'UND', 'Entrada', '2024-10-25'),
-(41, 14, 8, 1.50, 'UND', 'Entrada', '2024-10-25'),
-(42, 15, 110, 4.00, 'UND', 'Entrada', '2024-10-31'),
-(43, 11, 188, 10.00, 'UND', 'Entrada', '2024-10-31');
+(39, 12, 66, 5.00, 'UND', 'Entrada', '2024-10-25'),
+(40, 13, 17, 150.00, 'UND', 'Entrada', '2024-10-25'),
+(41, 14, 7, 1.50, 'UND', 'Entrada', '2024-10-25'),
+(42, 15, 102, 4.00, 'UND', 'Entrada', '2024-10-31'),
+(43, 11, 174, 10.00, 'UND', 'Entrada', '2024-10-31');
 
 -- --------------------------------------------------------
 
@@ -258,6 +284,19 @@ CREATE TABLE `promocionesclientes` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `promociones_clientes`
+--
+
+CREATE TABLE `promociones_clientes` (
+  `id` int(11) NOT NULL,
+  `id_cliente` int(11) DEFAULT NULL,
+  `id_promocion` int(11) DEFAULT NULL,
+  `fecha_aplicacion` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `reservas`
 --
 
@@ -291,7 +330,7 @@ CREATE TABLE `usuarios` (
 
 INSERT INTO `usuarios` (`id`, `nombre_usuario`, `contrasena`, `rol`, `id_empleado`) VALUES
 (16, 'PietroUrbina', '$2a$10$fmb3RKWYJqTHrpajLqY4u.Ork5Gz4EXbE2101457XsFCCMelfQt5q', 'Administrador', 12),
-(17, 'JaminQuispe', '$2a$10$AGXIw9o5b6.iGcqx9/6bTeTOvQy/oKDayFcJxaWMHO580EOXHyNPS', 'Cajero', 10);
+(18, 'Jamin Quispe', '$2a$10$liREpFj7r1tKnNYdYTdoROceDNhUstLQDLTKMMkL2aI45oxfeGKm6', 'Cajero', 10);
 
 -- --------------------------------------------------------
 
@@ -308,7 +347,7 @@ CREATE TABLE `ventas` (
   `imagen_evidencia` longblob DEFAULT NULL,
   `numero_operacion` varchar(255) DEFAULT NULL,
   `tipo_comprobante` enum('Boleta','Factura') NOT NULL,
-  `fecha_emision` date NOT NULL,
+  `fecha_emision` datetime NOT NULL,
   `estado` enum('Emitido','Cancelado') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -317,13 +356,10 @@ CREATE TABLE `ventas` (
 --
 
 INSERT INTO `ventas` (`id`, `id_usuario`, `id_cliente`, `total`, `metodo_pago`, `imagen_evidencia`, `numero_operacion`, `tipo_comprobante`, `fecha_emision`, `estado`) VALUES
-(12, 17, NULL, 0.00, 'Efectivo', NULL, NULL, 'Boleta', '2024-10-31', 'Emitido'),
-(13, 16, NULL, 0.00, 'Efectivo', NULL, NULL, 'Boleta', '2024-10-31', 'Emitido'),
-(14, 16, NULL, 0.00, 'Efectivo', NULL, NULL, 'Boleta', '2024-10-31', 'Emitido'),
-(15, 16, NULL, 0.00, 'Efectivo', NULL, NULL, 'Boleta', '2024-10-31', 'Emitido'),
-(16, 16, NULL, 0.00, 'Efectivo', NULL, NULL, 'Boleta', '2024-10-31', 'Emitido'),
-(17, 16, NULL, 0.00, 'Efectivo', NULL, NULL, 'Boleta', '2024-10-31', 'Emitido'),
-(18, 16, NULL, 0.00, 'Efectivo', NULL, NULL, 'Boleta', '2024-10-31', 'Emitido');
+(30, 16, 9, 4.00, 'Efectivo', NULL, NULL, 'Boleta', '2024-11-07 03:57:41', 'Emitido'),
+(31, 16, 8, 150.00, 'Efectivo', NULL, NULL, 'Boleta', '2024-11-07 05:42:36', 'Emitido'),
+(32, 18, 6, 60.00, 'Efectivo', NULL, NULL, 'Factura', '2024-11-07 05:43:42', 'Emitido'),
+(33, 18, 6, 11.00, 'Efectivo', NULL, NULL, 'Boleta', '2024-11-07 06:45:43', 'Emitido');
 
 --
 -- Índices para tablas volcadas
@@ -345,6 +381,18 @@ ALTER TABLE `categorias`
 -- Indices de la tabla `clientes`
 --
 ALTER TABLE `clientes`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `detalleboxs`
+--
+ALTER TABLE `detalleboxs`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `detallereservas`
+--
+ALTER TABLE `detallereservas`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -406,6 +454,12 @@ ALTER TABLE `promocionesclientes`
   ADD KEY `id_promocion` (`id_promocion`);
 
 --
+-- Indices de la tabla `promociones_clientes`
+--
+ALTER TABLE `promociones_clientes`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indices de la tabla `reservas`
 --
 ALTER TABLE `reservas`
@@ -448,7 +502,19 @@ ALTER TABLE `categorias`
 -- AUTO_INCREMENT de la tabla `clientes`
 --
 ALTER TABLE `clientes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT de la tabla `detalleboxs`
+--
+ALTER TABLE `detalleboxs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `detallereservas`
+--
+ALTER TABLE `detallereservas`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `detallesboxes`
@@ -466,7 +532,7 @@ ALTER TABLE `detallesreservas`
 -- AUTO_INCREMENT de la tabla `detalleventas`
 --
 ALTER TABLE `detalleventas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `empleados`
@@ -499,6 +565,12 @@ ALTER TABLE `promocionesclientes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT de la tabla `promociones_clientes`
+--
+ALTER TABLE `promociones_clientes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `reservas`
 --
 ALTER TABLE `reservas`
@@ -508,13 +580,13 @@ ALTER TABLE `reservas`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- Restricciones para tablas volcadas
