@@ -20,6 +20,31 @@ export const getAllInventarios = async (req, res) => {
     }
 };
 
+// Obtener un inventario específico por su ID (sin depender del id_producto)
+export const getInventarioById = async (req, res) => {
+    try {
+        const inventario = await inventariosModel.findOne({
+            where: { id: req.params.id },
+            include: [{
+                model: productosModel,
+                attributes: ['nombre', 'costo', 'fecha_vencimiento'],
+                include: [{
+                    model: categoriasModel,
+                    attributes: ['nombre_categoria']
+                }]
+            }]
+        });
+
+        if (!inventario) {
+            return res.status(404).json({ message: 'Inventario no encontrado' });
+        }
+
+        res.json(inventario);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // Mostrar un Inventario por id_producto (con la relación de productos y categorías)
 export const getInventarioByProductoId = async (req, res) => {
     try {
