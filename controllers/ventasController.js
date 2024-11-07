@@ -3,7 +3,9 @@ import ventasModel from "../models/ventasModel.js";
 import detalleVentasModel from "../models/detalleVentasModel.js";
 import inventariosModel from "../models/inventariosModel.js";
 import usuariosModel from "../models/usuariosModel.js";
+import empleadosModel from "../models/empleadosModel.js";
 import clientesModel from "../models/clientesModel.js";
+import productosModel from "../models/productosModel.js";
 
 const calcularTotalVenta = (productos) => {
     return productos.reduce((total, producto) => {
@@ -22,7 +24,7 @@ export const createVenta = async (req, res) => {
         numero_operacion = null,
         imagen_evidencia = null,
         tipo_comprobante = null,
-        estado = 'Emitido'  // Estado predeterminado como 'Emitido'
+        estado = 'Emitido'
     } = req.body;
 
     if (!Array.isArray(productos) || productos.length === 0) {
@@ -32,11 +34,10 @@ export const createVenta = async (req, res) => {
     const transaction = await db.transaction();
 
     try {
-        console.log("Datos recibidos en el servidor:", req.body);  // Depuración inicial
+        console.log("Datos recibidos en el servidor:", req.body);
 
         const total = calcularTotalVenta(productos);
 
-        // Crear la venta en la tabla `ventas`
         const venta = await ventasModel.create({
             id_usuario,
             id_cliente,
@@ -45,9 +46,8 @@ export const createVenta = async (req, res) => {
             total_pagado: metodo_pago === "efectivo" ? total_pagado : null,
             numero_operacion: metodo_pago !== "efectivo" ? numero_operacion : null,
             imagen_evidencia: metodo_pago !== "efectivo" ? imagen_evidencia : null,
-            fecha_emision: new Date(),
-            estado,  // Usar el estado que se recibe o el predeterminado 'Emitido'
-            tipo_comprobante: tipo_comprobante || 'Boleta'  // Asegurar valor predeterminado si es null
+            estado,
+            tipo_comprobante: tipo_comprobante || 'Boleta'
         }, { transaction });
 
         for (const producto of productos) {
@@ -83,7 +83,7 @@ export const createVenta = async (req, res) => {
         });
     } catch (error) {
         await transaction.rollback();
-        console.error("Error al crear la venta:", error);  // Registro detallado del error en el servidor
+        console.error("Error al crear la venta:", error);
         res.status(500).json({
             message: "Error al registrar la venta. Verifica los datos y vuelve a intentar.",
             error: error.message
@@ -91,14 +91,20 @@ export const createVenta = async (req, res) => {
     }
 };
 
-// Obtener todas las ventas con sus detalles y usuarios
+// Obtener todas las ventas con sus detalles, incluyendo los datos del usuario y el empleado asociado
 export const getAllVentas = async (req, res) => {
     try {
         const ventas = await ventasModel.findAll({
             include: [
                 {
                     model: usuariosModel,
-                    attributes: ['nombre_usuario']
+                    attributes: ['nombre_usuario'],
+                    include: [
+                        {
+                            model: empleadosModel,
+                            attributes: ['nombre_empleado', 'apellido_empleado']  // Usar nombres correctos de columnas
+                        }
+                    ]
                 },
                 {
                     model: clientesModel,
@@ -108,41 +114,74 @@ export const getAllVentas = async (req, res) => {
             ]
         });
 
-        const ventasConCliente = ventas.map(venta => {
+        const ventasConClienteYVendedor = ventas.map(venta => {
+            const vendedorNombre = venta.usuario?.empleado
+                ? `${venta.usuario.empleado.nombre_empleado.split(" ")[0]} ${venta.usuario.empleado.apellido_empleado.split(" ")[0]}`
+                : "Desconocido";
             return {
                 ...venta.toJSON(),
-                cliente: venta.cliente ? `${venta.cliente.nombre} ${venta.cliente.apellido}` : "Público General"
+                cliente: venta.cliente ? `${venta.cliente.nombre} ${venta.cliente.apellido}` : "Público General",
+                vendedor: vendedorNombre
             };
         });
 
-        res.json(ventasConCliente);
+        res.json(ventasConClienteYVendedor);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error("Error al obtener las ventas:", error);
+        res.status(500).json({ message: "Error al obtener las ventas.", error: error.message });
     }
 };
 
-// Mostrar una venta específica
+
+// Obtener una venta específica con detalles y productos
 export const getVenta = async (req, res) => {
-    const { id_venta } = req.params;
+    const { id } = req.params; // Cambia a "id" para que coincida con la ruta
     try {
         const venta = await ventasModel.findOne({
-            where: { id: id_venta },
+            where: { id }, // Usa "id" directamente en la condición where
             include: [
                 {
                     model: usuariosModel,
-                    attributes: ['nombre_usuario']
+                    attributes: ['nombre_usuario'],
+                    include: [
+                        {
+                            model: empleadosModel,
+                            attributes: ['nombre_empleado', 'apellido_empleado']
+                        }
+                    ]
                 },
                 {
                     model: clientesModel,
                     attributes: ['dni', 'nombre', 'apellido']
+                },
+                {
+                    model: detalleVentasModel,
+                    attributes: ['id_producto', 'cantidad', 'subtotal'],
+                    include: [
+                        {
+                            model: productosModel,
+                            attributes: ['nombre']
+                        }
+                    ]
                 }
             ]
         });
+
         if (!venta) {
             return res.status(404).json({ message: "Venta no encontrada" });
         }
-        res.json(venta);
+
+        const ventaConVendedor = {
+            ...venta.toJSON(),
+            vendedor: venta.usuario && venta.usuario.empleado
+                ? `${venta.usuario.empleado.nombre_empleado} ${venta.usuario.empleado.apellido_empleado}`
+                : "Desconocido",
+            cliente: venta.cliente ? `${venta.cliente.nombre} ${venta.cliente.apellido}` : "Público General"
+        };
+
+        res.json(ventaConVendedor);
     } catch (error) {
+        console.error("Error al obtener la venta:", error);
         res.status(500).json({ message: error.message });
     }
 };

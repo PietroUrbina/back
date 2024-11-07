@@ -1,7 +1,5 @@
 import db from "../database/db.js";
 import { DataTypes } from "sequelize";
-import usuariosModel from "./usuariosModel.js";
-import clientesModel from "./clientesModel.js";
 
 const ventasModel = db.define('ventas', {
     id_usuario: { type: DataTypes.INTEGER, allowNull: false },
@@ -13,8 +11,12 @@ const ventasModel = db.define('ventas', {
     },
     imagen_evidencia: { type: DataTypes.BLOB, allowNull: true },
     numero_operacion: { type: DataTypes.STRING, allowNull: true },
-    total: { type: DataTypes.DECIMAL(10, 2), allowNull: true }, // Campo opcional
-    fecha_emision: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+    total: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
+    fecha_emision: { 
+        type: DataTypes.DATE, 
+        allowNull: false, 
+        defaultValue: DataTypes.NOW
+    },
     estado: { 
         type: DataTypes.ENUM('Emitido', 'Cancelado'),
         allowNull: false,
@@ -27,8 +29,5 @@ const ventasModel = db.define('ventas', {
 }, {
     timestamps: false
 });
-
-ventasModel.belongsTo(usuariosModel, { foreignKey: 'id_usuario' });
-ventasModel.belongsTo(clientesModel, { foreignKey: 'id_cliente' });
 
 export default ventasModel;
