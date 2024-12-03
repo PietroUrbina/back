@@ -16,7 +16,7 @@ export const getAllDetalleReservas = async(req, res) => {
 //Mostrar un detalleReserva
 export const getDetalleReserva = async (req, res)=> {
     try {
-        const detalleReserva = await detalleReservasModel.findAll({
+        const detalleReserva = await detalleReservasModel.findOne({
             where:{ 
                 id:req.params.id
             }

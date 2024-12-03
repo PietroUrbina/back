@@ -35,10 +35,13 @@ app.use('/images', express.static(path.join(__dirname, 'public/images')));
 // Importar rutas y configurar la aplicación
 import UsuariosRoutes from "./routes/usuariosRoutes.js";
 import clientesRoutes from "./routes/clientesRoutes.js";
+import empresasRoutes from "./routes/empleadosRoutes.js";
 import inventariosRoutes from "./routes/inventariosRoutes.js";
+import kardexRoutes from "./routes/kardexRoutes.js";
 import productosRoutes from "./routes/productosRoutes.js";
 import categoriasRoutes from "./routes/categoriasRoutes.js";
 import promocionesRoutes from "./routes/promocionesRoutes.js";
+import promocionesClientesRoutes from "./routes/promocionesClientesRoutes.js";
 import reservasRoutes from "./routes/reservasRoutes.js";
 import detalleReservasRoutes from "./routes/detalleReservasRoutes.js";
 import ventasRoutes from "./routes/ventasRoutes.js";
@@ -50,10 +53,13 @@ import detalleBoxRoutes from "./routes/detalleBoxRoutes.js";
 // Rutas de la aplicación
 app.use('/usuarios', UsuariosRoutes);
 app.use('/clientes', clientesRoutes);
+app.use('/empresas', empresasRoutes);
 app.use('/inventarios', inventariosRoutes);
+app.use('/kardex', kardexRoutes);
 app.use('/productos', productosRoutes);
 app.use('/categorias', categoriasRoutes);
 app.use('/promociones', promocionesRoutes);
+app.use('/promocionesClientes', promocionesClientesRoutes);
 app.use('/reservas', reservasRoutes);
 app.use('/detalleReservas', detalleReservasRoutes);
 app.use('/ventas', ventasRoutes);
