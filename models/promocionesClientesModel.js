@@ -1,9 +1,9 @@
 import db from "../database/db.js";
 import { DataTypes } from "sequelize";
 
-const promocionesClientesModel = db.define('promociones_clientes', {
-    id_cliente: { type: DataTypes.INTEGER },
-    id_promocion: { type: DataTypes.INTEGER },
+const promocionesClientesModel = db.define('promocionesclientes', {
+    id_cliente: { type: DataTypes.INTEGER, allowNull: true },
+    id_promocion: { type: DataTypes.INTEGER, allowNull: true },
     fecha_aplicacion: { type: DataTypes.DATE },
     
 }, {
@@ -11,4 +11,3 @@ const promocionesClientesModel = db.define('promociones_clientes', {
 });
 
 export default promocionesClientesModel;
-

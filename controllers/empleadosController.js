@@ -30,10 +30,10 @@ export const getEmpleado = async (req, res)=> {
 }
 //crear un empleado
 export const createEmpleado = async (req, res) => {
-    const { dni, nombre_empleado, apellido_empleado, direccion, telefono, email, fecha_contratacion } = req.body;
+    const { dni, nombre_completo, direccion, telefono, email, fecha_contratacion } = req.body;
     
     try {
-        await empleadosModel.create({ dni, nombre_empleado, apellido_empleado, direccion, telefono, email, fecha_contratacion });
+        await empleadosModel.create({ dni, nombre_completo, direccion, telefono, email, fecha_contratacion });
         res.json({
             message: "¡Empleado creado correctamente!"
         });

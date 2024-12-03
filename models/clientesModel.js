@@ -2,21 +2,35 @@ import db from "../database/db.js";
 import { DataTypes } from "sequelize";
 
 const clientesModel = db.define('clientes', {
-    dni: { type: DataTypes.STRING },
-    nombre: { type: DataTypes.STRING },
-    apellido: { type: DataTypes.STRING },
-    direccion: {type: DataTypes.STRING},
-    email: { type: DataTypes.STRING },
-    telefono: { type: DataTypes.STRING },
-    fecha_nacimiento: { type: DataTypes.DATE },
-    sexo: { 
-        type: DataTypes.ENUM('Masculino', 'Femenino', 'Otro'),
-        allowNull: false  // Asegura que siempre se registre un valor
+    id_empresa: { 
+        type: DataTypes.INTEGER,
+        allowNull: true 
     },
-    
+    tipo_cliente: { 
+        type: DataTypes.ENUM('Cliente','Empresa'),
+    },
+    dni: { 
+        type: DataTypes.STRING,
+        allowNull: true  
+    },
+    nombre_completo: { 
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    direccion: { 
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    email: { 
+        type: DataTypes.STRING,
+        allowNull: true  
+    },
+    telefono: { 
+        type: DataTypes.STRING,
+        allowNull: true 
+    },    
 }, {
-    timestamps: false  // Opcional: deshabilitar createdAt y updatedAt
+    timestamps: false  // Deshabilitar createdAt y updatedAt
 });
 
 export default clientesModel;
-

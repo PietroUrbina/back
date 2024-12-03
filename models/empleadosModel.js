@@ -3,9 +3,8 @@ import { DataTypes } from "sequelize";
 
 const empleadosModel = db.define('empleados', {
     dni: { type: DataTypes.STRING},
-    nombre_empleado: { type: DataTypes.STRING },
-    apellido_empleado: { type: DataTypes.STRING },
-    direccion: { type: DataTypes.STRING },
+    nombre_completo: { type: DataTypes.STRING },
+    direccion: { type: DataTypes.TEXT },
     telefono: { type: DataTypes.STRING},
     email: { type: DataTypes.STRING},
     fecha_contratacion: { type: DataTypes.DATE}
@@ -14,4 +13,3 @@ const empleadosModel = db.define('empleados', {
 });
 
 export default empleadosModel;
-
