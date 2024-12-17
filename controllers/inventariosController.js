@@ -10,9 +10,10 @@ export const getAllInventarios = async (req, res) => {
             include: [
                 {
                     model: productosModel,
-                    attributes: ['id', 'nombre_producto', 'precio_venta'],
+                    attributes: ['id', 'nombre_producto'],
                 },
             ],
+            attributes: ['id', 'id_producto', 'stock', 'precio', 'unidad_medida', 'fecha_actualizacion'], // Asegúrate de incluir "precio"
         });
         res.json(inventarios);
     } catch (error) {
@@ -33,21 +34,33 @@ export const crearInventario = async (req, res) => {
             return res.status(400).json({ message: "El producto ya tiene un inventario registrado." });
         }
 
+        // Obtener el producto relacionado para verificar el precio_venta
+        const producto = await productosModel.findByPk(id_producto, {
+            attributes: ['precio_venta'],
+        });
+
+        if (!producto) {
+            return res.status(404).json({ message: "Producto no encontrado." });
+        }
+
+        // Usar precio del producto si no se envió un precio
+        const precioFinal = precio ?? producto.precio_venta;
+
         // Crear el registro de inventario
         const inventario = await inventariosModel.create({
             id_producto,
             stock,
-            precio,
+            precio: precioFinal,
             unidad_medida,
             fecha_actualizacion: new Date(),
         });
 
         // Crear la entrada inicial en el Kardex
         await kardexModel.create({
-            id_inventario: inventario.id, // Relación con el inventario recién creado
+            id_inventario: inventario.id,
             tipo_movimiento: 'Entrada',
             cantidad: stock,
-            precio,
+            precio: precioFinal,
             fecha_movimiento: new Date(),
             descripcion: 'Registro inicial en inventario',
         });
@@ -113,32 +126,29 @@ export const registrarMovimientoInventario = async (req, res) => {
 // Obtener un inventario específico por ID
 export const getInventarioById = async (req, res) => {
     try {
-        const inventario = await inventariosModel.findOne({
-            where: { id: req.params.id },
-            include: [
-                {
-                    model: productosModel,
-                    attributes: ['nombre_producto', 'precio_compra', 'precio_venta', 'fecha_vencimiento'],
-                    include: [
-                        {
-                            model: categoriasModel,
-                            attributes: ['nombre_categoria'],
-                        },
-                    ],
-                },
-            ],
-        });
-
-        if (!inventario) {
-            return res.status(404).json({ message: "Inventario no encontrado." });
-        }
-
-        res.json(inventario);
+      const inventario = await inventariosModel.findOne({
+        where: { id: req.params.id },
+        attributes: ["id", "id_producto", "stock", "precio", "unidad_medida", "fecha_actualizacion"], // Asegúrate de incluir precio
+        include: [
+          {
+            model: productosModel,
+            attributes: ["nombre_producto", "precio_compra", "precio_venta", "fecha_vencimiento"],
+          },
+        ],
+      });
+  
+      if (!inventario) {
+        return res.status(404).json({ message: "Inventario no encontrado." });
+      }
+  
+      res.json(inventario);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      console.error("Error al obtener inventario:", error);
+      res.status(500).json({ message: "Error al obtener inventario." });
     }
-};
+  };  
 
+// Actualizar un inventario existente
 // Actualizar un inventario existente
 export const updateInventario = async (req, res) => {
     const { id } = req.params;
@@ -151,6 +161,7 @@ export const updateInventario = async (req, res) => {
             return res.status(404).json({ message: "Inventario no encontrado." });
         }
 
+        // Actualizamos el inventario
         await inventario.update({
             stock: stock ?? inventario.stock,
             unidad_medida: unidad_medida ?? inventario.unidad_medida,
@@ -164,6 +175,7 @@ export const updateInventario = async (req, res) => {
         res.status(500).json({ message: "Error al actualizar inventario." });
     }
 };
+
 
 // Eliminar un inventario
 export const deleteInventario = async (req, res) => {

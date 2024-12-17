@@ -6,7 +6,7 @@ export const obtenerKardexInventario = async (req, res) => {
     const { id_inventario } = req.params;
 
     try {
-        // Verificar que el inventario existe
+        // Obtener inventario con producto
         const inventario = await inventariosModel.findByPk(id_inventario, {
             include: [{ model: productosModel, attributes: ["nombre_producto"] }],
         });
@@ -15,25 +15,29 @@ export const obtenerKardexInventario = async (req, res) => {
             return res.status(404).json({ message: "Inventario no encontrado." });
         }
 
-        // Buscar movimientos en el Kardex
+        // Buscar movimientos del Kardex
         const movimientos = await kardexModel.findAll({
             where: { id_inventario },
             order: [["fecha_movimiento", "ASC"]],
         });
 
         if (!movimientos.length) {
-            return res
-                .status(404)
-                .json({ message: "No hay movimientos registrados en el Kardex para este inventario." });
+            return res.status(404).json({
+                message: "No hay movimientos registrados en el Kardex para este inventario.",
+            });
         }
 
-        res.json(movimientos);
+        // Respuesta con precio del inventario
+        res.json({ 
+            producto: inventario.producto, 
+            precio: inventario.precio, // Precio del inventario
+            movimientos 
+        });
     } catch (error) {
         console.error("Error al obtener Kardex:", error);
         res.status(500).json({ message: "Error al obtener el Kardex." });
     }
 };
-
 
 // Registrar un movimiento en el Kardex (independiente del inventario)
 export const registrarMovimientoDirectoKardex = async (req, res) => {
@@ -44,18 +48,53 @@ export const registrarMovimientoDirectoKardex = async (req, res) => {
         const inventario = await inventariosModel.findByPk(id_inventario);
 
         if (!inventario) {
-            return res.status(404).json({ message: "inventario no encontrado." });
+            return res.status(404).json({ message: "Inventario no encontrado." });
         }
+
+        // Validar stock si el movimiento es de salida
+        if (tipo_movimiento === "Salida") {
+            if (cantidad > inventario.stock) {
+                return res
+                    .status(400)
+                    .json({ message: "Stock insuficiente para realizar la salida." });
+            }
+        }
+
+        // Obtener el último saldo del Kardex
+        const ultimoMovimiento = await kardexModel.findOne({
+            where: { id_inventario },
+            order: [["fecha_movimiento", "DESC"]],
+        });
+
+        const saldoAnterior = ultimoMovimiento ? ultimoMovimiento.saldo : 0;
+
+        // Calcular el nuevo saldo en base al tipo de movimiento
+        const nuevoSaldo =
+            tipo_movimiento === "Entrada"
+                ? saldoAnterior + cantidad
+                : saldoAnterior - cantidad;
 
         // Registrar movimiento en el Kardex
         const movimiento = await kardexModel.create({
             id_inventario,
             tipo_movimiento,
             cantidad,
-            precio,
+            precio: precio || inventario.precio,
+            saldo: nuevoSaldo,
             fecha_movimiento: new Date(),
             descripcion: descripcion || "Movimiento directo registrado",
         });
+
+        // Actualizar el stock en el inventario
+        const nuevoStock =
+            tipo_movimiento === "Entrada"
+                ? inventario.stock + cantidad
+                : inventario.stock - cantidad;
+
+        await inventariosModel.update(
+            { stock: nuevoStock, fecha_actualizacion: new Date() },
+            { where: { id: id_inventario } }
+        );
 
         res.status(201).json({ message: "Movimiento registrado correctamente en el Kardex.", movimiento });
     } catch (error) {
