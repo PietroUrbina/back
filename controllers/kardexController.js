@@ -2,6 +2,43 @@ import kardexModel from "../models/kardexModel.js";
 import inventariosModel from "../models/inventariosModel.js";
 import productosModel from "../models/productosModel.js";
 
+
+export const obtenerKardexGlobal = async (req, res) => {
+    try {
+        // Obtener todos los movimientos del Kardex junto con los nombres de los productos
+        const movimientos = await kardexModel.findAll({
+            include: [
+                {
+                    model: inventariosModel,
+                    include: [{ model: productosModel, attributes: ["nombre_producto"] }],
+                    attributes: ["id", "stock"], // Datos adicionales del inventario
+                },
+            ],
+            order: [["fecha_movimiento", "ASC"]],
+        });
+
+        if (!movimientos.length) {
+            return res.status(404).json({ message: "No hay movimientos registrados en el Kardex." });
+        }
+
+        // Formatear la respuesta
+        const formattedMovimientos = movimientos.map((mov) => ({
+            id: mov.id,
+            nombre_producto: mov.inventario?.producto?.nombre_producto || "Producto desconocido",
+            id_inventario: mov.id_inventario,
+            tipo_movimiento: mov.tipo_movimiento,
+            cantidad: mov.cantidad,
+            fecha_movimiento: mov.fecha_movimiento,
+            descripcion: mov.descripcion || "-",
+        }));
+
+        res.json(formattedMovimientos);
+    } catch (error) {
+        console.error("Error al obtener el Kardex global:", error);
+        res.status(500).json({ message: "Error al obtener el Kardex global." });
+    }
+};
+
 export const obtenerKardexInventario = async (req, res) => {
     const { id_inventario } = req.params;
 

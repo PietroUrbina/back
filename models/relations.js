@@ -15,6 +15,8 @@ import boxModel from './boxModel.js';
 import promocionesClientesModel from './promocionesClientesModel.js';
 import promocionesModel from './promocionesModel.js';
 import empresasModel from './empresasModel.js';
+import unidadMedidaModel from './unidadMedidaModel.js';
+import productoComboModel from './productosCombosModel.js';
 
 // ----------------------------------------
 // Relación entre productos y categorías
@@ -25,9 +27,20 @@ categoriasModel.hasMany(productosModel, { foreignKey: 'id_categoria' });
 productosModel.hasMany(inventariosModel, { foreignKey: 'id_producto' });
 inventariosModel.belongsTo(productosModel, { foreignKey: 'id_producto' });
 
+// Relación entre inventarios y unidad_medida
+unidadMedidaModel.hasMany(inventariosModel, { foreignKey: 'id_unidad_medida' });
+inventariosModel.belongsTo(unidadMedidaModel, { foreignKey: 'id_unidad_medida' });
+
 // Relación entre inventarios y kardex
 inventariosModel.hasMany(kardexModel, { foreignKey: "id_inventario" });
 kardexModel.belongsTo(inventariosModel, { foreignKey: "id_inventario" });
+
+// Relación entre productos_combos y productos
+productoComboModel.belongsTo(productosModel, { foreignKey: 'id_producto', as: 'producto' });
+productoComboModel.belongsTo(productosModel, { foreignKey: 'id_producto_combo', as: 'combo' });
+
+productosModel.hasMany(productoComboModel, { foreignKey: 'id_producto', as: 'productosEnCombo' });
+productosModel.hasMany(productoComboModel, { foreignKey: 'id_producto_combo', as: 'comboPrincipal' });
 
 // Relación entre ventas y detalleVentas
 ventasModel.hasMany(detalleVentasModel, { foreignKey: 'id_venta' });
@@ -86,7 +99,7 @@ promocionesClientesModel.belongsTo(promocionesModel, { foreignKey: 'id_promocion
 promocionesModel.hasMany(promocionesClientesModel, { foreignKey: 'id_promocion' });
 
 // ----------------------------------------
-// Exportar los modelos para uso en toda la aplicación si es necesario
+// Exportar los modelos
 export {
     productosModel,
     inventariosModel,
@@ -102,5 +115,7 @@ export {
     boxModel,
     promocionesClientesModel,
     promocionesModel,
-    empresasModel
+    empresasModel,
+    unidadMedidaModel,
+    productoComboModel
 };

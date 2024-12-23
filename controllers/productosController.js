@@ -68,19 +68,41 @@ export const getProductosConInventario = async (req, res) => {
 export const getProducto = async (req, res) => {
     try {
         const producto = await productosModel.findOne({
-            where: { id: req.params.id }
+            where: { id: req.params.id },
+            include: [
+                {
+                    model: categoriasModel,
+                    attributes: ['nombre_categoria'],
+                },
+                {
+                    model: productoComboModel, // Relación con productosCombo
+                    as: 'productosCombo',
+                    include: [
+                        {
+                            model: productosModel,
+                            attributes: ['id', 'nombre_producto'],
+                        },
+                    ],
+                },
+            ],
         });
+
+        if (!producto) {
+            return res.status(404).json({ message: "Producto no encontrado." });
+        }
+
         res.json(producto);
     } catch (error) {
+        console.error("Error al obtener el producto:", error);
         res.status(500).json({ message: error.message });
     }
-}
+};
 
 // Crear un Producto
 export const createProducto = async (req, res) => {
-    const { nombre_producto, descripcion, id_categoria, precio_compra, precio_venta, fecha_vencimiento, imagen } = req.body;
+    const { nombre_producto, descripcion, id_categoria, precio_compra, precio_venta, fecha_vencimiento, imagen, productosCombo } = req.body;
 
-    // Validar que todos los campos obligatorios estén presentes
+    // Validar campos obligatorios
     if (!nombre_producto || !descripcion || !id_categoria || precio_compra == null || precio_venta == null) {
         return res.status(400).json({
             message: "Todos los campos requeridos deben estar presentes: nombre_producto, descripcion, id_categoria, precio_compra, precio_venta."
@@ -94,7 +116,7 @@ export const createProducto = async (req, res) => {
             return res.status(404).json({ message: "La categoría especificada no existe." });
         }
 
-        // Crear el producto
+        // Crear el producto principal
         const producto = await productosModel.create({
             nombre_producto,
             descripcion,
@@ -102,8 +124,20 @@ export const createProducto = async (req, res) => {
             precio_compra,
             precio_venta,
             fecha_vencimiento: fecha_vencimiento || null,
-            imagen: imagen || null 
+            imagen: imagen || null
         });
+
+        // Si el producto pertenece a la categoría "Combos", manejar la lógica de productosCombo
+        if (categoria.nombre_categoria.toLowerCase() === "combos" && productosCombo && productosCombo.length > 0) {
+            for (const item of productosCombo) {
+                // Crear los productos del combo
+                await productoComboModel.create({
+                    id_producto_combo: producto.id,
+                    id_producto: item.id_producto,
+                    cantidad: item.cantidad
+                });
+            }
+        }
 
         res.status(201).json({ message: "Producto creado correctamente!", producto });
     } catch (error) {
@@ -112,15 +146,13 @@ export const createProducto = async (req, res) => {
     }
 };
 
-
-
 // Actualizar un Producto
 export const updateProducto = async (req, res) => {
     try {
         const { id } = req.params;
-        const { id_categoria } = req.body;
+        const { id_categoria, productosCombo } = req.body;
 
-        // Si se incluye id_categoria, verificar que exista
+        // Verificar si se incluye una categoría
         if (id_categoria) {
             const categoria = await categoriasModel.findByPk(id_categoria);
             if (!categoria) {
@@ -128,20 +160,39 @@ export const updateProducto = async (req, res) => {
             }
         }
 
+        // Actualizar el producto principal
         const [updated] = await productosModel.update(req.body, {
-            where: { id }
+            where: { id },
         });
 
         if (updated === 0) {
             return res.status(404).json({ message: "Producto no encontrado para actualizar." });
         }
 
+        // Manejar la lógica de productosCombo si aplica
+        if (id_categoria && productosCombo && productosCombo.length > 0) {
+            const categoria = await categoriasModel.findByPk(id_categoria);
+            if (categoria.nombre_categoria.toLowerCase() === "combos") {
+                // Eliminar los productos actuales del combo
+                await productoComboModel.destroy({ where: { id_producto_combo: id } });
+
+                // Crear los nuevos productos del combo
+                for (const item of productosCombo) {
+                    await productoComboModel.create({
+                        id_producto_combo: id,
+                        id_producto: item.id_producto,
+                        cantidad: item.cantidad,
+                    });
+                }
+            }
+        }
+
         res.json({ message: "Producto actualizado correctamente!" });
     } catch (error) {
+        console.error("Error al actualizar el producto:", error);
         res.status(500).json({ message: error.message });
     }
 };
-
 
 // Eliminar un Producto
 export const deleteProducto = async (req, res) => {
